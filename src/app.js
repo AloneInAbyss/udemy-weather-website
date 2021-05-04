@@ -49,16 +49,16 @@ app.get('/weather', (req, res) => {
         })
     }
 
-    geocode(req.query.address, (error, { latitude, longitude, location } = {}) => {
+    geocode(req.query.address, (error, { latitude, longitude, search: location } = {}) => {
         if (error) {
             return res.send({ error })
         }
 
-        forecast(latitude, longitude, (error, forecastData) => {
+        forecast(latitude, longitude, (error, { weatherDesc, temp, apparentTemp } = {}) => {
             if (error) {
                 return res.send({ error })
             }
-
+            let forecastData = `Atualmente com ${temp}°C, e sensação de ${apparentTemp}°C.`
             res.send({
                 forecast: forecastData,
                 location,

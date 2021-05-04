@@ -1,21 +1,31 @@
 const request = require('request')
 
-const geocode = (address, callback) => {
-    const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + address + '.json?access_token=pk.eyJ1IjoiYW5kcmV3bWVhZDEiLCJhIjoiY2pvOG8ybW90MDFhazNxcnJ4OTYydzJlOSJ9.njY7HvaalLEVhEOIghPTlw&limit=1'
+function geocode(query, callback, language='en') {
+  let accessKey = 'access_token=pk.eyJ1IjoiYWxvbmVpbmFieXNzIiwiYSI6ImNrbmFwOG94bTFrMTIyeHFwbmNraGI3aHMifQ.HQ0gyO1T-SdP9M-1aD0VpA'
+  query = encodeURIComponent(query) + '.json'
+  language = encodeURIComponent(language)
+  let options = `language=${language}`
+  let url = `http://api.mapbox.com/geocoding/v5/mapbox.places/${query}?${accessKey}&${options}`
+  
+  request({ url, json: true }, (error, { body }) => {
+    if (error) {
+      callback('Unable to connect to map service!', undefined)
+    } else if (body.message) {
+      callback('A problem has occured', undefined)
+    } else if (body.features.length === 0) {
+      callback('Unable to find location', undefined)
+    } else {
+      const search = body.features[0].place_name
+      const latitude = body.features[0].center[1]
+      const longitude = body.features[0].center[0]
 
-    request({ url, json: true }, (error, { body }) => {
-        if (error) {
-            callback('Unable to connect to location services!', undefined)
-        } else if (body.features.length === 0) {
-            callback('Unable to find location. Try another search.', undefined)
-        } else {
-            callback(undefined, {
-                latitude: body.features[0].center[1],
-                longitude: body.features[0].center[0],
-                location: body.features[0].place_name
-            })
-        }
-    })
+      callback(undefined, {
+        latitude,
+        longitude,
+        search
+      })
+    }
+  })
 }
 
 module.exports = geocode
